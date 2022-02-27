@@ -74,7 +74,6 @@ $app->get('/todo/{id}', function ($id) use ($app) {
         
     } else {
 
-        
         $todos = $userInfo->getAllList($app, $userId);
 
         if($todos){
@@ -90,8 +89,24 @@ $app->get('/todo/{id}', function ($id) use ($app) {
 })
 ->value('id', null);
 
+$app->match('/todolist', function (Request $request) use($app) {
+    $userInfo = New User();
+
+    if (null === $user = $app['session']->get('user')) {
+        $err = [
+            "message" => "Unauthorized"
+        ];
+        http_response_code(401);
+        return '';
+    }
+    $userId = $user['id'];
+    $todoList = $userInfo->getAllList($app, $userId);
+
+    return json_encode($todoList);
+});
 
 $app->post('/todo/add', function (Request $request) use ($app) {
+
     if (null === $user = $app['session']->get('user')) {
         return $app->redirect('/login');
     }
@@ -100,9 +115,22 @@ $app->post('/todo/add', function (Request $request) use ($app) {
     $user_id = $user['id'];
     $description = $request->get('description');
 
-    $userInfo->addTodoItem($app, $user_id, $description);
+    $updateData = $userInfo->addTodoItem($app, $user_id, $description);
 
-    return $app->redirect('/todo');
+    if($updateData){
+
+        http_response_code(200);
+        return json_encode($updateData);
+
+    }else{
+
+        http_response_code(500);
+        $err = [
+            "message" => "Something went wrong"
+        ];
+        return json_encode($err);
+    }
+    exit();
 });
 
 
