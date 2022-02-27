@@ -18,20 +18,28 @@ $app->get('/', function () use ($app) {
 
 
 $app->match('/login', function (Request $request) use ($app) {
+    $user = New User();
     $username = $request->get('username');
     $password = $request->get('password');
+    $message = '';
 
     if ($username) {
-        $sql = "SELECT * FROM users WHERE username = '$username' and password = '$password'";
-        $user = $app['db']->fetchAssoc($sql);
-
-        if ($user){
-            $app['session']->set('user', $user);
+        // Login
+        $userLogin = $user->login($app, $username, $password);
+        
+        // check user 
+        if ($userLogin){
+            $app['session']->set('user', $userLogin);
             return $app->redirect('/todo');
+        }else {
+            // update error message
+            $message = 'Please check your username or passwords';
         }
     }
 
-    return $app['twig']->render('login.html', array());
+    return $app['twig']->render('login.html', array(
+        'message' => $message,
+    ));
 });
 
 
@@ -42,23 +50,41 @@ $app->get('/logout', function () use ($app) {
 
 
 $app->get('/todo/{id}', function ($id) use ($app) {
+    $userInfo = New User();
+
     if (null === $user = $app['session']->get('user')) {
         return $app->redirect('/login');
     }
 
+    $userId = $user['id'];
+
     if ($id){
-        $sql = "SELECT * FROM todos WHERE id = '$id'";
-        $todo = $app['db']->fetchAssoc($sql);
+
+        $todo = $userInfo->getTodoItem($app, $id, $userId);
+
+        if($todo){
+            $todoItem = $todo;
+        }else{
+            $todoItem = '';
+        }
 
         return $app['twig']->render('todo.html', [
-            'todo' => $todo,
+            'todo' => $todoItem,
         ]);
+        
     } else {
-        $sql = "SELECT * FROM todos WHERE user_id = '${user['id']}'";
-        $todos = $app['db']->fetchAll($sql);
+
+        
+        $todos = $userInfo->getAllList($app, $userId);
+
+        if($todos){
+            $todoList = $todos;
+        }else{
+            $todoList = '';
+        }
 
         return $app['twig']->render('todos.html', [
-            'todos' => $todos,
+            'todos' => $todoList,
         ]);
     }
 })
@@ -70,11 +96,11 @@ $app->post('/todo/add', function (Request $request) use ($app) {
         return $app->redirect('/login');
     }
 
+    $userInfo = New User();
     $user_id = $user['id'];
     $description = $request->get('description');
 
-    $sql = "INSERT INTO todos (user_id, description) VALUES ('$user_id', '$description')";
-    $app['db']->executeUpdate($sql);
+    $userInfo->addTodoItem($app, $user_id, $description);
 
     return $app->redirect('/todo');
 });
@@ -82,8 +108,8 @@ $app->post('/todo/add', function (Request $request) use ($app) {
 
 $app->match('/todo/delete/{id}', function ($id) use ($app) {
 
-    $sql = "DELETE FROM todos WHERE id = '$id'";
-    $app['db']->executeUpdate($sql);
+    $userInfo = New User();
+    $userInfo->deleteTodoItem($app, $id);
 
     return $app->redirect('/todo');
 });
