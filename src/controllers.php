@@ -105,6 +105,29 @@ $app->match('/todolist', function (Request $request) use($app) {
     return json_encode($todoList);
 });
 
+$app->match('/todoitem/{id}', function ($id) use ($app) {
+    $userInfo = New User();
+
+    if (null === $user = $app['session']->get('user')) {
+        $err = [
+            "message" => "Unauthorized"
+        ];
+        http_response_code(401);
+        return '';
+    }
+    $userId = $user['id'];
+    $todo = $userInfo->getTodoItem($app, $id, $userId);
+
+    if($todo){
+        $todoItem = $todo;
+    }else{
+        $todoItem = '';
+    }
+
+    return json_encode($todoItem);
+})
+->value('id', null);
+
 $app->post('/todo/add', function (Request $request) use ($app) {
 
     if (null === $user = $app['session']->get('user')) {

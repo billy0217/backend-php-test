@@ -1,29 +1,38 @@
 {% extends "layout.html" %}
 
 {% block content %}
+
 <div class="col-md-4 col-md-offset-4">
     <h1>Todo:</h1>
-    {%if todo %}
-        <table class="table table-striped">
-            <th>#</th><th>User</th><th>Description</th><th></th>
-                <tr>
-                    <td>{{ todo.id }}</td>
-                    <td>{{ todo.user_id }}</td>
-                    <td>{{ todo.description }}</td>
-                    <td>
-                        <form method="post" action="{{ app.request.baseurl }}/todo/delete/{{ todo.id }}">
-                            <button type="submit" class="btn btn-xs btn-danger"><span class="glyphicon glyphicon-remove glyphicon-white"></span></button>
-                        </form>
-                    </td>
-                </tr>
-        </table>
-        <a href="/todo"><span class="glyphicon glyphicon-chevron-left"></span> Back to list</a>
-    {% else %}
-        <div class="alert alert-danger">
-           <p>Todo Item doesn't exit</p>
+    <div id="todo">
+        <div v-cloak>
+            <div v-if="todoItem">
+                <table class="table table-striped">
+                    <thead>
+                        <th>#</th>
+                        <th>User</th>
+                        <th>Description</th>
+                        <th></th>
+                    </thead>
+                    <tbody>
+                        <td>${ todoItem.id }</td>
+                        <td>${ todoItem.user_id }</td>
+                        <td>${ todoItem.description }</td>
+                        <td>
+                            <button @click="deleteTodoItem" class="btn btn-xs btn-danger" :data-id="todoItem.id">x</button>
+                        </td>
+                    </tbody>
+                </table>
+                <a href="/todo"><span class="glyphicon glyphicon-chevron-left"></span> Back to list</a>
+            </div>
+            <div v-else>
+                <div class="alert alert-danger">
+                    <p>Todo Item doesn't exit</p>
+                </div>
+                <a href="/todo"><span class="glyphicon glyphicon-chevron-left"></span> Back to list</a>
+            </div>
         </div>
-        <a href="/todo"><span class="glyphicon glyphicon-chevron-left"></span> Back to list</a>
-    {% endif %}
+    </div>
 </div>
 
 {% endblock %}

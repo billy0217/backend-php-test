@@ -61,3 +61,46 @@ const todos = Vue.createApp({
 })
 
 todos.mount("#todos");
+
+
+const todo = Vue.createApp({
+	data(){
+		return {
+			todoItem: null,
+			todoID: '',
+			error: '',
+		}
+	},
+	compilerOptions: {
+		// change Vue JS delimiters - crash with symfony
+		delimiters: ["${", "}"]
+	},
+	
+	mounted(){
+		const pathname = window.location.pathname;
+		const todoID = pathname.substring(pathname.lastIndexOf('/') + 1);
+		console.log(todoID);
+		this.getData(todoID);
+	},
+	methods: {
+		deleteTodoItem(e) {
+			const btn = e.target;
+			const todoID = btn.getAttribute('data-id');
+			// delet do item
+			if(confirm("Do you really want to delete?")){
+				fetch(`/todo/delete/${todoID} `);
+				this.getData();
+			}
+		},
+
+		getData(todoID) {
+			// get todo list
+			return 	fetch(`/todoitem/${todoID}`)
+					.then(res =>  res.json())
+					.then(data => this.todoItem =  data )
+					.catch(err => this.error = err.message)
+		},
+	}
+})
+
+todo.mount("#todo");
