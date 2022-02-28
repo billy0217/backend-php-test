@@ -1,4 +1,4 @@
-const app = Vue.createApp({
+const todos = Vue.createApp({
 	data(){
 		return {
 			todoList: [],
@@ -18,8 +18,10 @@ const app = Vue.createApp({
 			const btn = e.target;
 			const todoID = btn.getAttribute('data-id');
 			// delet do item
-			fetch(`/todo/delete/${todoID} `);
-			this.getData();
+			if(confirm("Do you really want to delete?")){
+				fetch(`/todo/delete/${todoID} `);
+				this.getData();
+			}
 		},
 
 		getData() {
@@ -46,6 +48,8 @@ const app = Vue.createApp({
 				.then( data => {
 					// update todo list
 					this.getData();
+					// clear description text field
+					this.todoItem = '';
 				})
 				.catch((err) => {
 					// update error message
@@ -56,4 +60,4 @@ const app = Vue.createApp({
 	}
 })
 
-app.mount("#app");
+todos.mount("#todos");
